@@ -1,6 +1,7 @@
 # bank system project 4 cs
-#SEEING IF COMMIT WORKS
+# SEEING IF COMMIT WORKS
 import random as r
+
 
 class BankAccount:
     def __init__(self, age, name, password, balance=0, withdrawl_limit=500):
@@ -44,18 +45,20 @@ class BankAccount:
         self.name = new_name
         self.age = new_age
         self.withdrawl_limit = new_withdrawl_limit
-        self.password  = new_pass
-        print(f'Account details updated, name: {self.name}, age: {self.age}, withdrawl limit: {self.withdrawl_limit}, password: {new_pass}')
+        self.password = new_pass
+        print(
+            f'Account details updated, name: {self.name}, age: {self.age}, withdrawl limit: {self.withdrawl_limit}, password: {new_pass}')
 
-def pass_validate(word):  #validation function for the user passsword
-    count= 0
+
+def pass_validate(word):  # validation function for the user passsword
+    count = 0
     special_ca_set = '!@#$%^&*()_+-=`~:;/?.>,<{}[]'
     if len(word) > 8:
         count += 1
     else:
         print('Password needs to be longer than 8 characters.')
     if any(c in special_ca_set for c in word):
-        count+=1
+        count += 1
     else:
         print('Password has to include at least one special character.')
     if any(c.isupper() for c in word):
@@ -71,24 +74,41 @@ def pass_validate(word):  #validation function for the user passsword
     else:
         return False
 
-def random_password():  #instead of making a password, the user has the choice to generate one, in order to allways be inside the criteria, it takes 5 numbers, 5 capital letters, 5 special characters and 10 random ones and has a length of 25
+
+def random_password():  # instead of making a password, the user has the choice to generate one, in order to allways be inside the criteria, it takes 5 numbers, 5 capital letters, 5 special characters and 10 random ones and has a length of 25
     special_char = '!@#$%^&*()_+=-~`,./?<>[]{}|;:\'\"\\'
-    characters = [chr(i) for i in range(33, 127)]  #all printable ascii characters
+    characters = [chr(i) for i in range(33, 127)]  # all printable ascii characters
     nums = '1234567890'
     capital = 'QWERTYUIOPASDFGHJKLZXCVBNM'
-    capital = (r.choices(capital, k=5))  #5 capital letters e.g QHJRB
-    num = (r.choices(nums, k=5))  #5 numbers
-    special = (r.choices(special_char, k=5))  #5 special characters e.b: 19854
-    password = (r.choices(characters, k=10))  #10 random printable ascii characters
-    password += num + special + capital  #combine all of them together
-    r.shuffle(password)  #shuffle them since when we combine them the list is in order (random characters, numbers, special character and then capital characters)
-    password = ''.join(password)  #make the password a string
+    capital = (r.choices(capital, k=5))  # 5 capital letters e.g QHJRB
+    num = (r.choices(nums, k=5))  # 5 numbers
+    special = (r.choices(special_char, k=5))  # 5 special characters e.b: 19854
+    password = (r.choices(characters, k=10))  # 10 random printable ascii characters
+    password += num + special + capital  # combine all of them together
+    r.shuffle(
+        password)  # shuffle them since when we combine them the list is in order (random characters, numbers, special character and then capital characters)
+    password = ''.join(password)  # make the password a string
     return password
 
 
+def save_accounts_to_file(accounts, filename='accounts.txt'):
+    with open(filename, 'w') as file:
+        for acc_id, account in accounts.items():
+            file.write(
+                f'{acc_id},{account.name},{account.age},{account.balance},{account.withdrawl_limit},{account.password}\n')
+
+
+def get_accounts(file= 'accounts.txt'):
+    accounts = {}
+    with open(file, 'r') as file:
+            for line in file:
+                acc_id, name, age, balance, withdrawl_limit, password = line.strip().split(',')
+                accounts[acc_id] = BankAccount(int(age), name, password, float(balance), float(withdrawl_limit))
+    return accounts
 
 def main():
-    accounts = {}
+    accounts = get_accounts()
+    auto_pass_acc = []
 
     while True:  # other things: offers/store; support for different currencies(stored in a mini account); shortcut for transfer(no need 4 id) etc
         print(f'\nWelcome! Select one option please:\n'
@@ -115,7 +135,7 @@ def main():
                 age = int(input('Input your age:  '))
                 while True:
                     c = input('\n1. To make a password\n2. To automatically generate one\n... ')
-                    if c =='1':
+                    if c == '1':
                         password = input('Password criteria:\n'
                                          'Longer than 8 characters\n'
                                          'Has at least one special character\n'
@@ -135,8 +155,6 @@ def main():
                 accounts[acc_id] = BankAccount(age, name, password)
                 print(
                     f'Account {acc_id} succsesfully created, name: {accounts[acc_id].name}| age: {accounts[acc_id].age}')
-                with open('accounts.txt', 'a') as file:
-                    file.write(f'  {acc_id}\n')
 
             case 2:  # view account details
                 acc_id = input('Input your account id please!')
@@ -154,75 +172,99 @@ def main():
                     print('This account id does not exist, make sure to input the correct id or create an account now!')
 
             case 3:  # change account credentials
-                acc_id = input('What is your account id?')
+                acc_id = input('Input your account id: ')
                 if acc_id not in accounts:
                     print('This account doesnt exist!')
                 else:
-                    try:
-                        while True:  # input and validate new name
-                            new_name = str(input('What is you new name?'))
-                            if any(n.isdigit() for n in new_name):
-                                print('Can\'t have a name with digits')
-                            else:
-                                break
+                    password = input('Input your account password: ')
+                    if password == accounts[acc_id].password:
+                        try:
+                            while True:  # input and validate new name
+                                new_name = str(input('What is you new name?'))
+                                if any(n.isdigit() for n in new_name):
+                                    print('Can\'t have a name with digits')
+                                else:
+                                    break
 
-                    except TypeError:
-                        print('Input a string please')
+                        except TypeError:
+                            print('Input a string please')
 
-                    try:
-                        while True:  # input and validate new age
-                            new_age = int(input('Whats your age?'))
-                            if not new_age >= 18:
-                                print('Cant be smaller than 18')
-                            else:
-                                break
-                    except TypeError:
-                        print('Enter a whole number')
-                    n = input('Do you want to change your withdrawl limit? y/n').strip().lower()
-                    while True:
+                        try:
+                            while True:  # input and validate new age
+                                new_age = int(input('Whats your age?'))
+                                if not new_age >= 18:
+                                    print('Can\'t be smaller than 18')
+                                else:
+                                    break
+                        except TypeError:
+                            print('Enter a whole number')
+                        n = input('Do you want to change your withdrawal limit? y/n').strip().lower()
                         if n == 'y':
-                            new_withdrawl_limit = int(input('Input your new withdrawl limit: '))
+                            new_withdrawl_limit = int(input('Input your new withdrawal limit: '))
                             if new_withdrawl_limit > 1500:
                                 print(
                                     'For values bigger than $1500 an official request is needed, you can write one from the menu!')
-                                break
                         elif n == 'n':
-                            break
+                            continue
                         else:
                             print('Enter a valid option')
+                        while True:
+                            n = input('Do you want to change your password? y/n').strip().lower()
+                            if n == 'y':
+                                new_pass = input('Password criteria:\n'
+                                             'Longer than 8 characters\n'
+                                             'Has at least one special character\n'
+                                             'Contains at least one capital letter\n'
+                                             'Contains at least one number\n'
+                                             'Input a password:  ')
+                                if pass_validate(new_pass):
+                                    break
+                                else:
+                                    print('Input a valid password!')
+                    else:
+                        print('Wrong password, try again!')
 
-                    accounts[acc_id].update_acc(new_age, new_age, new_withdrawl_limit)
+                    accounts[acc_id].update_acc(new_age, new_age, new_withdrawl_limit, new_pass)
 
             case 4:  # deposit money into an account
                 acc_id = input('Enter your account id: ')
                 if acc_id in accounts:
-                    ammount = int(input('Input the ammount you would like to deposit into your account:   '))
-                    accounts[acc_id].deposit(ammount)
-                    print(f'New balance: {accounts[acc_id].balance: .2f}, ${ammount: .2f} deposited in the account!')
+                    password = input('Input your password: ')
+                    if password == accounts[acc_id].password:
+                        ammount = int(input('Input the ammount you would like to deposit into your account:   '))
+                        accounts[acc_id].deposit(ammount)
+                        print(
+                            f'New balance: {accounts[acc_id].balance: .2f}, ${ammount: .2f} deposited in the account!')
+                    else:
+                        print('This password is incorrect!')
                 else:
                     print('This account id does not exist, make sure to input the correct id or create an account now!')
 
             case 5:  # withdraw money
                 acc_id = input('Enter your account id: ')
                 if acc_id in accounts:
-                    ammount = int(input('Input the ammount you would like to deposit into your account:   '))
-                    if ammount <= accounts[acc_id].balance:
-                        accounts[acc_id].deposit(ammount)
-                        print(
-                            f'New balance: {accounts[acc_id].balance: .2f}, ${ammount: .2f} withdrawn from the account!')
+                    password = input('Input your password: ')
+                    if password == accounts[acc_id].password:
+                        ammount = int(input('Input the amount you would like to deposit into your account:   '))
+                        if ammount <= accounts[acc_id].balance:
+                            accounts[acc_id].deposit(ammount)
+                            print(
+                                f'New balance: {accounts[acc_id].balance: .2f}, ${ammount: .2f} withdrawn from the account!')
+                        else:
+                            print('Insufficient funds!')
                     else:
-                        print('Insufficient funds (ur brok)')
+                        print('This password is incorrect!')
                 else:
                     print('This account id does not exist, make sure to input the correct id or create an account now!')
 
             case 6:  # transfer money
                 acc_id = input('Enter your account id: ')
-                other_id = input('Enter the id for hte target account:  ')
+                other_id = input('Enter the id for the target account:  ')
                 if acc_id in accounts:
                     if other_id in accounts:
                         ammount = int(input('Input the ammount you would like to deposit into your account:   '))
                         if ammount <= accounts[acc_id].balance:
-                            accounts[acc_id].transfer(other_id, ammount)
+                            accounts[acc_id].transfer(accounts[other_id], ammount)
                             print(
                                 f'New balance: {accounts[acc_id].balance: .2f}, ${ammount: .2f} transferred from the account to account {other_id}!')
                         else:
@@ -233,14 +275,21 @@ def main():
                     print('This account id does not exist, make sure to input the correct id or create an account now!')
 
             case 7:  # view all accounts
+                c = input('Input ADMIN password:  ')
+                admin_password = '4865'
                 if accounts:
-                    for n in accounts.keys():
-                        print(
-                            f'Account id: {n}| Name: {accounts[n].name}| Age: {accounts[n].age}| Balance: {accounts[n].balance}| Withdrawl Limit: {accounts[n].withdrawl_limit}')
+                    if c == admin_password:
+                        for n in accounts.keys():
+                            print(
+                                f'Account id: {n}| Name: {accounts[n].name}| Age: {accounts[n].age}| Balance: {accounts[n].balance}| Withdrawl Limit: {accounts[n].withdrawl_limit}')
+                    else:
+                        print('Wrong password!')
                 else:
                     print('No accounts in database!')
 
             case 10:
+                print('Goodbye!')
+                save_accounts_to_file(accounts)
                 break
 
             case _:
