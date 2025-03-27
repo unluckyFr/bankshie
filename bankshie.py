@@ -4,12 +4,14 @@ import random as r
 
 
 class BankAccount:
-    def __init__(self, age, name, password, balance=0, withdrawl_limit=500):
+    def __init__(self, age, name, password, balance=0, withdrawl_limit=500, loan=None):
         self.name = name
         self.age = age
         self.balance = balance
         self.password = password
         self.withdrawl_limit = withdrawl_limit
+        self.loan = loan
+
 
     def display(self):
         print(f'Account name: {self.name}\n'
@@ -49,6 +51,32 @@ class BankAccount:
         print(
             f'Account details updated, name: {self.name}, age: {self.age}, withdrawl limit: {self.withdrawl_limit}, password: {new_pass}')
 
+    def get_loan(self, other):
+        pass
+
+class Loans:
+    def __init__(self, amount, interest_rate, months):
+        self.amount = amount
+        self.interest_rate = interest_rate
+        self.months = months
+    
+    def display_info(self):
+        print(f"Loan Amount: {self.amount}")
+        print(f"Interest Rate: {self.interest_rate * 100}%")
+        print(f"Duration: {self.months} months")
+        print(f"Monthly Payment: {self.monthly_payment:.2f}")
+
+small_loan = Loans(1000, 0.1, 12)
+medium_loan = Loans(5000, 0.2, 24)
+big_loan = Loans(10000, 0.3, 36)
+
+
+loans = [small_loan, medium_loan, big_loan] # list of loans, more can be added 
+
+def display_loans():
+    for loan in loans:
+        print(f'Ammount: {loan.ammount}, Monthly Interest: {loan.monthly_interest}, Time: {loan.time} months')
+    
 
 def pass_validate(word):  # validation function for the user passsword
     count = 0
@@ -82,11 +110,10 @@ def random_password():  # instead of making a password, the user has the choice 
     capital = 'QWERTYUIOPASDFGHJKLZXCVBNM'
     capital = (r.choices(capital, k=5))  # 5 capital letters e.g QHJRB
     num = (r.choices(nums, k=5))  # 5 numbers
-    special = (r.choices(special_char, k=5))  # 5 special characters e.b: 19854
+    special = (r.choices(special_char, k=5))  # 5 special characters e.g: 19854
     password = (r.choices(characters, k=10))  # 10 random printable ascii characters
     password += num + special + capital  # combine all of them together
-    r.shuffle(
-        password)  # shuffle them since when we combine them the list is in order (random characters, numbers, special character and then capital characters)
+    r.shuffle(password)  # shuffle them since when we combine them the list is in order (random characters, numbers, special character and then capital characters)
     password = ''.join(password)  # make the password a string
     return password
 
@@ -95,20 +122,26 @@ def save_accounts_to_file(accounts, filename='accounts.txt'):
     with open(filename, 'w') as file:
         for acc_id, account in accounts.items():
             file.write(
-                f'{acc_id},{account.name},{account.age},{account.balance},{account.withdrawl_limit},{account.password}\n')
+                f'{acc_id},{account.name},{account.age},{account.balance},{account.withdrawl_limit},{account.password}, {account.loan}\n')
 
 
-def get_accounts(file= 'accounts.txt'):
+def get_accounts(file='accounts.txt'):
     accounts = {}
     with open(file, 'r') as file:
-            for line in file:
-                acc_id, name, age, balance, withdrawl_limit, password = line.strip().split(',')
-                accounts[acc_id] = BankAccount(int(age), name, password, float(balance), float(withdrawl_limit))
+        for line in file:
+            parts = line.strip().split(',')
+            if len(parts) == 7:  # if loan is chosen
+                acc_id, name, age, balance, withdrawl_limit, password, loan = parts
+            else:  # if no lone is chosen
+                acc_id, name, age, balance, withdrawl_limit, password = parts
+                loan = None
+            accounts[acc_id] = BankAccount(int(age), name, password, float(balance), float(withdrawl_limit), loan )
     return accounts
+
+
 
 def main():
     accounts = get_accounts()
-    auto_pass_acc = []
 
     while True:  # other things: offers/store; support for different currencies(stored in a mini account); shortcut for transfer(no need 4 id) etc
         print(f'\nWelcome! Select one option please:\n'
@@ -123,7 +156,7 @@ def main():
               f'10. Exit')
 
         try:
-            choice = int(input('\nInput a number 1-10'))
+            choice = int(input('\nInput a number 1-10: '))
         except TypeError:
             print('Please input a whole number ')
 
@@ -157,15 +190,15 @@ def main():
                     f'Account {acc_id} succsesfully created, name: {accounts[acc_id].name}| age: {accounts[acc_id].age}')
 
             case 2:  # view account details
-                acc_id = input('Input your account id please!')
+                acc_id = input('Input your account id please: ')
                 if acc_id in accounts:
                     user_password = input('\nPlease input your password: ')
                     if user_password == accounts[acc_id].password:
                         print(f'Account id: {acc_id}\n'
-                              f'Name: {accounts[acc_id].name}'
-                              f'Age: {accounts[acc_id].age}'
-                              f'Current Balance: {accounts[acc_id].balance}'
-                              f'Withdrawal Limit: {accounts[acc_id].withdrawl_limit}')
+                              f'Name: {accounts[acc_id].name}\n'
+                              f'Age: {accounts[acc_id].age}\n'
+                              f'Current Balance: {accounts[acc_id].balance}\n'
+                              f'Withdrawal Limit: {accounts[acc_id].withdrawl_limit}\n')
                     else:
                         print('Wrong password try again!')
                 else:
@@ -180,7 +213,7 @@ def main():
                     if password == accounts[acc_id].password:
                         try:
                             while True:  # input and validate new name
-                                new_name = str(input('What is you new name?'))
+                                new_name = str(input('What is you new name? '))
                                 if any(n.isdigit() for n in new_name):
                                     print('Can\'t have a name with digits')
                                 else:
@@ -212,11 +245,11 @@ def main():
                             n = input('Do you want to change your password? y/n').strip().lower()
                             if n == 'y':
                                 new_pass = input('Password criteria:\n'
-                                             'Longer than 8 characters\n'
-                                             'Has at least one special character\n'
-                                             'Contains at least one capital letter\n'
-                                             'Contains at least one number\n'
-                                             'Input a password:  ')
+                                                 'Longer than 8 characters\n'
+                                                 'Has at least one special character\n'
+                                                 'Contains at least one capital letter\n'
+                                                 'Contains at least one number\n'
+                                                 'Input a password:  ')
                                 if pass_validate(new_pass):
                                     break
                                 else:
